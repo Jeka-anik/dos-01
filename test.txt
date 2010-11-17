@@ -1,3 +1,5 @@
 text -test
  change-branch-history
+hot - bugfix
+ и еще изменения 
  
