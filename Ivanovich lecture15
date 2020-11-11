@@ -69,3 +69,7 @@ anik@K53:/etc/systemd/system$ sudo chgrp RabGr my.service
 anik@K53:/etc/systemd/system$ ls -l my.service
 -rwxrw-rw- 1 RabUs RabGr 121 ліс  9 22:32 my.service
 anik@K53:/etc/systemd/system$ 
+
+
+
+end
