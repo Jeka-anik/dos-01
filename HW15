@@ -1,0 +1,31 @@
+anik@K53:~/dos-01$ cd Lecture15
+anik@K53:~/dos-01/Lecture15$ touch 1.exe
+anik@K53:~/dos-01/Lecture15$ touch 2.o
+anik@K53:~/dos-01/Lecture15$ touch 3.jar
+anik@K53:~/dos-01/Lecture15$ touch 4.lib
+anik@K53:~/dos-01/Lecture15$ 
+anik@K53:~/dos-01/Lecture15$ touch 5.txt
+anik@K53:~/dos-01/Lecture15$ touch 5 txt
+anik@K53:~/dos-01/Lecture15$ git add .
+
+anik@K53:~/dos-01/Lecture15$ git status
+На ветке DZ
+Ваша ветка обновлена в соответствии с «origin/DZ».
+
+Изменения, которые будут включены в коммит:
+  (use "git restore --staged <file>..." to unstage)
+        новый файл:    1.exe
+        новый файл:    2.o
+        новый файл:    3.jar
+        новый файл:    4.lib
+        новый файл:    5
+        новый файл:    5.txt
+        новый файл:    txt
+
+ сейчас закоммитим игнорируя расширения  exe o jar lib
+
+anik@K53:~/dos-01/Lecture15$ vi .gitignore
+*.exe
+*.o
+*.jar
+*.lib
