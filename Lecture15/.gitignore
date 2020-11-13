@@ -1,8 +1,8 @@
 #файлы с расширением exe
-Lecture15/*.exe
+*.exe
 # .o
-Lecture15/*.o
+*.o
 # .jar
-Lecture15/*.jar
+*.jar
 # .lib 
-Lecture15/*.lib
+*.lib
