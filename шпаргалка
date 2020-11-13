@@ -1,0 +1,400 @@
+Jeka Anik
+рассказать lvm
+
+Jeka Anik
+рассказать про ntp и что сделал в файле host
+Следить за актуальностью времени на всех узлах локальной сети удобнее с помощью сервера синхронизации времени NTP.
+NTP
+Устанавливаем ntp:
+apt-get install ntp
+В настройка /etc/ntp.conf в качестве сервера оставляем только наш локальный сервер, например:
+server 192.168.0.15
+Остальные pool и server удаляем или комментируем.
+Перезапускаем NTP:
+systemctl restart ntp || service restart ntp
+ntpdate
+Утилита командной строки выполняет разовую синхронизацию. Чтобы автоматизировать процесс, добавляем задание в cron:
+crontab -e
+0 0 * * * /usr/sbin/ntpdate 192.168.0.15
+про хост 
+Установка и настройка клиента NTP
+Теперь мы установим и настроим клиент NTP для синхронизации с нашим NTP-сервером.
+Перед запуском вам нужно будет установить файл /etc/hosts.
+Таким образом, ваш NTP-сервер можно разрешить с помощью имени хоста.
+Для этого откройте файл /etc/hosts:
+sudo nano /etc/hosts
+Добавьте следующие строки:
+
+192.168.43.229 ntp-server-host
+Замените IP-адрес IP-адресом вашего NTP-сервера (тот, который мы установили в предыдущем пункте)
+
+
+
+
+Jeka Anik
+подробная шпаргалка https://wiki.archlinux.org/index.php/Systemd_(%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9) 
+
+systemd на завтра (суть работы с примерами и объяснениями)
+Systemd запускает сервисы описанные в его конфигурации.
+Конфигурация состоит из множества файлов, которые по-модному называют юнитами.
+Все эти юниты разложены в трех каталогах:
+/usr/lib/systemd/system/ – юниты из установленных пакетов RPM — всякие nginx, apache, mysql и прочее
+/run/systemd/system/ — юниты, созданные в рантайме — тоже, наверное, нужная штука
+/etc/systemd/system/ — юниты, созданные системным администратором 
+Юнитами могут быть, например, службы (.service), точки монтирования (.mount), устройства (.device) или сокеты (.socket).
+
+В секции Unit описываем, что это за юнит:
+Названия переменных достаточно говорящие:
+
+Описание юнита:
+Description=MyUnit
+
+Далее следует блок переменных, которые влияют на порядок загрузки сервисов:
+
+Запускать юнит после какого-либо сервиса или группы сервисов (например network.target):
+After=syslog.target
+After=network.target
+After=nginx.service
+After=mysql.service
+
+Для запуска сервиса необходим запущенный сервис mysql:
+Requires=mysql.service
+
+Для запуска сервиса желателен запущенный сервис redis:
+Wants=redis.service
+
+В итоге переменная Wants получается чисто описательной.
+Если сервис есть в Requires, но нет в After, то наш сервис будет запущен параллельно с требуемым сервисом, а не после успешной загрузки требуемого сервиса
+
+В секции Service указываем какими командами и под каким пользователем надо запускать сервис:
+
+Тип сервиса:
+Type=simple
+(по умолчанию): systemd предполагает, что служба будет запущена незамедлительно. Процесс при этом не должен разветвляться. Не используйте этот тип, если другие службы зависят от очередности при запуске данной службы.
+
+Type=forking
+systemd предполагает, что служба запускается однократно и процесс разветвляется с завершением родительского процесса. Данный тип используется для запуска классических демонов.
+
+Также следует определить PIDFile=, чтобы systemd могла отслеживать основной процесс:
+PIDFile=/work/www/myunit/shared/tmp/pids/service.pid
+
+Рабочий каталог, он делается текущим перед запуском стартап команд:
+WorkingDirectory=/work/www/myunit/current
+
+Пользователь и группа, под которым надо стартовать сервис:
+User=myunit
+Group=myunit
+
+
+Переменные окружения:
+Environment=RACK_ENV=production
+
+Запрет на убийство сервиса вследствие нехватки памяти и срабатывания механизма OOM:
+-1000 полный запрет (такой у sshd стоит), -100 понизим вероятность.
+OOMScoreAdjust=-100
+
+Команды на старт/стоп и релоад сервиса
+
+ExecStart=/usr/local/bin/bundle exec service -C /work/www/myunit/shared/config/service.rb --daemon
+ExecStop=/usr/local/bin/bundle exec service -S /work/www/myunit/shared/tmp/pids/service.state stop
+ExecReload=/usr/local/bin/bundle exec service -S /work/www/myunit/shared/tmp/pids/service.state restart
+
+Тут есть тонкость — systemd настаивает, чтобы команда указывала на конкретный исполняемый файл. Надо указывать полный путь.
+Таймаут в секундах, сколько ждать system отработки старт/стоп команд.
+TimeoutSec=300
+Попросим systemd автоматически рестартовать наш сервис, если он вдруг перестанет работать.
+Контроль ведется по наличию процесса из PID файла
+Restart=always
+В секции [Install] опишем, в каком уровне запуска должен стартовать сервис
+Уровень запуска:
+WantedBy=multi-user.target
+
+multi-user.target или runlevel3.target соответствует нашему привычному runlevel=3 «Многопользовательский режим без графики. Пользователи, как правило, входят в систему при помощи множества консолей или через сеть»
+
+Вот и готов простейший стартап скрипт, он же unit для systemd:
+myunit.service
+
+[Unit]
+Description=MyUnit
+After=syslog.target
+After=network.target
+After=nginx.service
+After=mysql.service
+Requires=mysql.service
+Wants=redis.service
+
+[Service]
+Type=forking
+PIDFile=/work/www/myunit/shared/tmp/pids/service.pid
+WorkingDirectory=/work/www/myunit/current
+
+User=myunit
+Group=myunit
+
+Environment=RACK_ENV=production
+
+OOMScoreAdjust=-1000
+
+ExecStart=/usr/local/bin/bundle exec service -C /work/www/myunit/shared/config/service.rb --daemon
+ExecStop=/usr/local/bin/bundle exec service -S /work/www/myunit/shared/tmp/pids/service.state stop
+ExecReload=/usr/local/bin/bundle exec service -S /work/www/myunit/shared/tmp/pids/service.state restart
+TimeoutSec=300
+
+[Install]
+WantedBy=multi-user.target 
+
+Кладем этот файл в каталог /etc/systemd/system/
+
+systemctl status myunit
+systemctl daemon-reload
+systemctl enable myunit
+systemctl -l status myunit
+systemctl start myunit
+
+
+
+
+
+
+
+Jeka Anik
+рассказать, про два процесса в докерфайле
+нужно использовать супервизор. в настройках его нужно прописать 
+Внутри этой папки conf.d вам нужен главный файл конфигурации супервизора с именем supervisord.conf , который содержит:
+
+[supervisord]                                                                                                                                                                 
+nodaemon=true
+
+
+# Inherit ubuntu base image
+FROM ubuntu:latest
+# Update linux package repo and install desired dependencies
+RUN apt-get update -y
+RUN apt-get -y install nginx git supervisor
+# Create new linux group and user to own apps
+RUN groupadd --system apps
+RUN useradd --system --gid apps --shell /bin/bash --home /apps
+# Create directory for app logs
+RUN mkdir -p /apps/logs
+# RUN any other configuration or dependency setup commands for apps
+RUN apt-get update apt-get install -curl 
+# Copy in any static dependencies
+COPY Hello.txt /apps/my
+# Copy in supervisor configuration files
+COPY ./supervisord/conf.d/* /etc/supervisor/conf.d/
+# Open connectivity on container port X to the docker host
+EXPOSE 80 8080 
+# Create empty log files
+RUN touch /apps/logs/xxxx.log
+# Set app directory owners and permissions
+RUN chown -R apps:apps /apps
+RUN chmod -R u+rwx apps
+RUN chmod -R g+rx apps
+RUN chmod -R o+rx apps
+# Run supervisor configuration file on container startup
+CMD ["supervisord", "-n"]
+anik@K53:~/docker$ sudo docker top 5a8f6a3e4f89
+UID                 PID                 PPID                C                   STIME               TTY                 TIME                CMD
+root                24171               24152               0                   12:34               ?                   00:00:00            /bin/sh -c apt-get -y install nginx git supervisor
+root                24212               24171               0                   12:34               ?                   00:00:02            apt-get -y install nginx git supervisor
+root                25397               24212               0                   12:37               pts/0               00:00:00            /usr/bin/dpkg --status-fd 25 --configure --pending
+root                25450               25397               0                   12:37               pts/0               00:00:00            /usr/bin/perl -w /usr/share/debconf/frontend /var/lib/dpkg/info/tzdata.postinst configure
+root                25459               25450               0                   12:37               pts/0               00:00:00            /bin/sh /var/lib/dpkg/info/tzdata.config configure
+
+
+
+
+Jeka Anik
+системный вызов, рассказать
+
+Систе́мный вы́зов (англ. system call) в программировании и вычислительной технике — обращение прикладной программы к ядру операционной системы для выполнения какой-либо операции. (с)Википедия
+В заголовочном файле ядра Linux sys/syscall.h доступна функция syscall, позволяющая непосредственно выполнять системные вызовы. Таблица системных вызовов Linux документирована и является частью API этой ОС.
+Категории системных вызовов
+Системные вызовы могут быть сгруппированы в пять больших категорий:
+
+Управление процессами
+load
+execute
+end (exit), abort
+создание процесса (fork в Unix-like, NtCreateProcess в Windows_NT Native API)
+завершение процесса
+get/set process attributes
+wait время, события, signal события
+allocate, free memory
+
+Работа с файлами
+create file, delete file
+open, close
+read, write, reposition
+get/set file attributes
+
+Управление устройствами
+request device, release device
+read, write, reposition
+get/set device attributes
+logically attach or detach devices
+
+Работа с информацией
+get/set time or date
+get/set system data
+get/set process, file, or device attributes
+
+Связь, коммуникация
+create, delete communication connection
+send, receive messages
+transfer status information
+attach or detach remote devices
+
+В вычислительной технике, системный вызов является программным способом, в котором компьютерная программа запрашивает определенную операцию от ядра операционной системы. Иными словами, системный вызов возникает, когда пользовательский процесс требует некоторой службы реализуемой ядром и вызывает специальную функцию.
+
+Сюда могут входить услуги, связанные с аппаратным обеспечением (например, доступ к жесткому диску), создание и выполнение новых процессов, связь с интегральными службами ядра, такими как планирование процессов. Системные вызовы обеспечивают необходимый интерфейс между процессом и операционной системой. В основном, системные вызовы могут быть сделаны только самим пользователем, однако в таких системах как OS/360 привилегированный код системы также может вызвать системный вызов
+
+
+Jeka Anik
+strace
+команда strace показывает все системные вызовы программы, которые та отправляет к системе во время выполнения, а также их параметры и результат выполнения
+Главный интерфейс между программами и ядром OC в Unix — системные вызовы (англ. system calls, syscalls), взаимодействие программ с внешним миром происходит исключительно через них.
+$ strace опции команда аргументы
+
+В самом простом варианте strace запускает переданную команду с её аргументами и выводит в стандартный поток ошибок все системные вызовы команды. Давайте разберём опции утилиты, с помощью которых можно управлять её поведением:
+
+-i - выводить указатель на инструкцию во время выполнения системного вызова;
+-k - выводить стек вызовов для отслеживаемого процесса после каждого системного вызова;
+-o - выводить всю информацию о системных вызовах не в стандартный поток ошибок, а в файл;
+-q - не выводить сообщения о подключении о отключении от процесса;
+-qq - не выводить сообщения о завершении работы процесса;
+-r - выводить временную метку для каждого системного вызова;
+-s - указать максимальный размер выводимой строки, по умолчанию 32;
+-t - выводить время суток для каждого вызова;
+-tt - добавить микросекунды;
+-ttt - добавить микросекунды и количество секунд после начала эпохи Unix;
+-T - выводить длительность выполнения системного вызова;
+-x - выводить все не ASCI-строки в шестнадцатеричном виде;
+-xx - выводить все строки в шестнадцатеричном виде;
+-y - выводить пути для файловых дескрипторов;
+-yy - выводить информацию о протоколе для файловых дескрипторов;
+-c - подсчитывать количество ошибок, вызовов и время выполнения для каждого системного вызова;
+-O - добавить определённое количество микросекунд к счетчику времени для каждого вызова;
+-S - сортировать информацию выводимую при опции -c. Доступны поля time, calls, name и nothing. По умолчанию используется time;
+-w - суммировать время между началом и завершением системного вызова;
+-e - позволяет отфильтровать только нужные системные вызовы или события;
+-P - отслеживать только системные вызовы, которые касаются указанного пути;
+-v - позволяет выводить дополнительную информацию, такую как версии окружения, статистику и так далее;
+-b - если указанный системный вызов обнаружен, трассировка прекращается;
+-f - отслеживать также дочерние процессы, если они будут созданы;
+-ff - если задана опция -o, то для каждого дочернего процесса будет создан отдельный файл с именем имя_файла.pid.
+-I - позволяет блокировать реакцию на нажатия Ctrl+C и Ctrl+Z;
+-E - добавляет переменную окружения для запускаемой программы;
+-p - указывает pid процесса, к которому следует подключиться;
+-u - запустить программу, от имени указанного пользователя.
+Вы знаете основные опции strace, но чтобы полноценно ею пользоваться, нужно ещё разобраться с системными вызовами, которые используются чаще всего. Мы не будем рассматривать все, а только основные. Многие из них вы уже и так знаете, потому что они называются так же, как и команды в терминале:
+
+fork - создание нового дочернего процесса;
+read - попытка читать из файлового дескриптора;
+write - попытка записи в файловый дескриптор;
+open - открыть файл для чтения или записи;
+close - закрыть файл после чтения или записи;
+chdir - изменить текущую директорию;
+execve - выполнить исполняемый файл;
+stat - получить информацию о файле;
+mknod - создать специальный файл, например, файл устройства или сокет;
+
+
+
+Jeka Anik
+Можно ли уменьшить lvm? если можно, реализовать на практике
+
+
+
+
+
+Jeka Anik
+ко вторнику cmd endpoint
+CMD — описывает команду с аргументами, которую нужно выполнить когда контейнер будет запущен. Аргументы могут быть переопределены при запуске контейнера. В файле может присутствовать лишь одна инструкция CMD.
+ENTRYPOINT — предоставляет команду с аргументами для вызова во время выполнения контейнера. Аргументы не переопределяются.
+
+
+
+
+
+Jeka Anik
+sudoers права на сервис
+Разграничение прав пользователей в Ubuntu
+
+Редактирование файла /etc/sudoers
+Файл /etc/sudoers определяет какие пользователи могут запускать sudo команды, а также управляет особыми правилами, например, нужен ли пользователю пароль для определенных команд. Файл состоит из псевдонимов (переменных) и пользовательских спецификаций.
+
+Чтобы открыть файл /etc/sudoers используйте утилиту visudo, она специально предназначена для редактирования этого файла и позволяет не допустить ошибок в синтаксисе:
+
+visudo
+Файл будет открыт в текстовом редакторе по-умолчанию.
+
+Стандартное содержимое файла выглядит следующим образом:
+
+#
+# This file MUST be edited with the 'visudo' command as root.
+#
+# Please consider adding local content in /etc/sudoers.d/ instead of
+# directly modifying this file.
+#
+# See the man page for details on how to write a sudoers file.
+#
+Defaults	env_reset
+Defaults	mail_badpass
+Defaults	secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+
+# Host alias specification
+
+# User alias specification
+
+# Cmnd alias specification
+
+# User privilege specification
+root	ALL=(ALL:ALL) ALL
+
+# Members of the admin group may gain root privileges
+%admin ALL=(ALL) ALL
+
+# Allow members of group sudo to execute any command
+%sudo	ALL=(ALL:ALL) ALL
+
+# See sudoers(5) for more information on "#include" directives:
+
+#includedir /etc/sudoers.d
+Примечание: здесь параметр Defaults имеет несколько значений:
+
+env_reset - сбрасывает все пользовательские переменные;
+mail_badpass - сообщает системе отправлять уведомления о неудачных попытках ввода пароля sudo пользователю mailto. По умолчанию это учетная запись root.
+secure_path - пути, по которым операционная система будет искать файлы, используемые для операций sudo.
+Рассмотрим подробнее строку:
+
+%sudo ALL=(ALL:ALL) ALL
+%sudo - имя пользователя или группа, к которой нужно применить правило (имя группы указывается после символа %, имя пользователя без).
+<>Первое ALL означает, что правило применяется ко всем IP-адресам, второе ALL, что указанный пользователь может запускать команды в сессии любого пользователя, третье ALL означает, что указанный пользователь может запускать команды в любой группе. Последнее ALL указывает, что эти правила нужно применять ко всем командам.
+Например, для настройки прав для команды apt-get можно использовать следующую строку:
+
+%admin ALL=(ALL)NOPASSWD:/usr/bin/apt-get
+%admin - правило применяется для всех пользователей группы admin;
+ALL= - правило применяется ко всем IP-адресам;
+(ALL) - пользователь может запускать команды в сессии любого пользователя;
+NOPASSWD - пароль не требуется;
+:/usr/bin/apt-get - список команд, разделенный запятой.
+Host alias - это псевдонимы для IP адресов с которых отправляются на выполнение команды. Псевдоним для хоста можно задать следующим образом:
+
+Host_Alias <Имя> = <Хост_или_IP-адрес>
+Например:
+
+Host_Alias CLOUD = 105.17.125.37
+User alias - это псевдонимы имен пользователей или групп прямо внутри файла sudoers, а не в системе. Псевдоним можно задать следующим образом (для групп используйте %):
+
+User_Alias <Имя> = <пользователь1>,<пользователь2>,...
+Например:
+
+User_Alias PEOPLE = alice,bob
+Cmnd alias - являются псевдонимами для имен команд прямо внутри файла sudoers, а не в системе. Псевдоним команды можно задать следующим образом:
+
+Cmnd_Alias <Имя> = <команда1>,<команда2>
+Например:
+
+Cmnd_Alias APT = /usr/bin/apt-get update,/usr/bin/apt-get upgrade
+
