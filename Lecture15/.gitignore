@@ -3,6 +3,6 @@
 # .o
 *.o
 # .jar
-*.jar
+3.jar
 # .lib 
-*.lib
+4.lib
