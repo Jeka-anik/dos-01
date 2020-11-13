@@ -1,28 +1,11 @@
-anik@K53:~/dos-01$ cd Lecture15
-anik@K53:~/dos-01/Lecture15$ touch 1.exe
-anik@K53:~/dos-01/Lecture15$ touch 2.o
-anik@K53:~/dos-01/Lecture15$ touch 3.jar
-anik@K53:~/dos-01/Lecture15$ touch 4.lib
-anik@K53:~/dos-01/Lecture15$ 
-anik@K53:~/dos-01/Lecture15$ touch 5.txt
-anik@K53:~/dos-01/Lecture15$ touch 5 txt
-anik@K53:~/dos-01/Lecture15$ git add .
+1) Ваша задача - создать проект с кодом, добавить туда файлы со след. расширениями:
 
-anik@K53:~/dos-01/Lecture15$ git status
-На ветке DZ
-Ваша ветка обновлена в соответствии с «origin/DZ».
+ * all files with exe extension
+ * all files with o extension
+ * all files with jar extension
+ * the whole libraries directory
 
-Изменения, которые будут включены в коммит:
-  (use "git restore --staged <file>..." to unstage)
-        новый файл:    1.exe
-        новый файл:    2.o
-        новый файл:    3.jar
-        новый файл:    4.lib
-        новый файл:    5
-        новый файл:    5.txt
-        новый файл:    txt
-
- сейчас закоммитим игнорируя расширения  exe o jar lib
+ Закоммитить код, исключая данные расширения файлов
 
 anik@K53:~/dos-01/Lecture15$ vi .gitignore
 *.exe
@@ -30,11 +13,94 @@ anik@K53:~/dos-01/Lecture15$ vi .gitignore
 *.jar
 *.lib
 
-#файлы с расширением exe
-Lecture15/*.exe
-# .o
-Lecture15/*.o
-# .jar
-Lecture15/*.jar
-# .lib 
-Lecture15/*.lib
+
+anik@K53:~/dos-01/lecture15$ touch 1.exe
+anik@K53:~/dos-01/lecture15$ touch 3.jar
+anik@K53:~/dos-01/lecture15$ touch 2.o
+anik@K53:~/dos-01/lecture15$ touch 4.lib
+anik@K53:~/dos-01/lecture15$ touch 5.txt
+anik@K53:~/dos-01/lecture15$ touch 6.txt
+
+anik@K53:~/dos-01/Lecture15$ git status
+На ветке DZ
+Ваша ветка обновлена в соответствии с «origin/DZ».
+
+
+как видим, будут проигнорены файлы, с расширением которые указаны в gitignore 
+
+anik@K53:~/dos-01/lecture15$ git add
+Ничего не указано, ничего не добавлено.
+Возможно, вы имели в виду «git add .»?
+anik@K53:~/dos-01/lecture15$ git add .
+anik@K53:~/dos-01/lecture15$ git commit -m "ver1.0"
+[DZ e775ff4] ver1.0
+ 2 files changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 lecture15/5.txt
+ create mode 100644 lecture15/6.txt
+
+
+
+2) Изменить регистр букв в файле
+
+Вы закоммитили File.txt, но осознали, что он должен быть file.txt
+Изменить это.
+
+anik@K53:~/dos-01/lecture15$ touch File.txt
+anik@K53:~/dos-01/lecture15$ git add .
+anik@K53:~/dos-01/lecture15$ git commit -m "Fike"
+[DZ d0beb8e] Fike
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 lecture15/File.txt
+anik@K53:~/dos-01/lecture15$ mv File.txt file.txt
+anik@K53:~/dos-01/lecture15$ git add file.txt
+anik@K53:~/dos-01/lecture15$ git commit --amend --no-edit
+[DZ 6d16922] Fike
+ Date: Fri Nov 13 13:14:01 2020 +0300
+ 2 files changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 lecture15/File.txt
+ create mode 100644 lecture15/file.txt
+anik@K53:~/dos-01/lecture15$ 
+
+3) Найти коммит, который был утерян
+
+Вы создали коммит с важным куском работы. Затем решили пофиксать что-то в последнем коммитет и сделали amend. 
+Далее вы осознали, что закоммитили не те изменения и нужно вернуться к первой версии коммита, который вы заамендили.
+
+Однако в истории нет предыдущей версии - вы отредактировали коммит, используя git commit --amend
+Ваша цель - найти первую версию фикса в репозитории.
+
+создам файл , сделаю несколько коммитов 
+лог 
+
+anik@K53:~/dos-01/lecture15$ git log
+commit a98e6c990ce219c2b90ac7cc1ce1a7f48a4f86ec (HEAD -> DZ, origin/DZ)
+Author: Evgeniy <anik.evgeniy@gmail.com>
+Date:   Fri Nov 13 13:26:49 2020 +0300
+
+    ver1.3
+
+commit dd0b394cc544d9f7df9ebdbbc3085f9969558a35
+Author: Evgeniy <anik.evgeniy@gmail.com>
+Date:   Fri Nov 13 13:25:19 2020 +0300
+
+    ver1.2
+
+commit f5385e766ef1a91ada0d4fbb8d6912b4a24b9f7d
+Author: Evgeniy <anik.evgeniy@gmail.com>
+Date:   Fri Nov 13 13:24:20 2020 +0300
+
+    ver1.0
+
+
+текст файла file.txt
+
+"просто текст и какая то работа. первая редакция 
+еще немного текста и какой то работы. Вторая редакция 
+а теперь важный кусок работы . Третья редакция"
+
+
+перед amend 
+просто текст и какая то работа. первая редакция 
+еще немного текста и какой то работы. Вторая редакция 
+а теперь важный кусок работы . Третья редакция
+добавляю не те измения, после которых буду делать аменд
