@@ -29,3 +29,12 @@ anik@K53:~/dos-01/Lecture15$ vi .gitignore
 *.o
 *.jar
 *.lib
+
+#файлы с расширением exe
+Lecture15/*.exe
+# .o
+Lecture15/*.o
+# .jar
+Lecture15/*.jar
+# .lib 
+Lecture15/*.lib
