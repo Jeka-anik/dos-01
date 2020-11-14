@@ -1,5 +1,15 @@
 Jeka Anik
 рассказать lvm
+LVM — это дополнительный слой абстракции от железа, позволяющий собрать кучи разнородных дисков в один, и затем снова разбить этот один именно так как нам хочется.
+
+есть 3 уровня абстракции:
+1. PV (Physical Volume) — физические тома (это могут быть разделы или целые «неразбитые» диски)
+2. VG (Volume Group) — группа томов (объединяем физические тома (PV) в группу, создаём единый диск, который будем дальше разбивать так, как нам хочется)
+3. LV (Logical Volume) — логические разделы, собственно раздел нашего нового «единого диска» ака Группы Томов, который мы потом форматируем и используем как обычный раздел, обычного жёсткого диска.
+это пожалуй вся теория. :) теперь практика:
+для работы нужны пакеты lvm2 
+
+
 
 Jeka Anik
 рассказать про ntp и что сделал в файле host
@@ -303,6 +313,142 @@ mknod - создать специальный файл, например, фай
 
 Jeka Anik
 Можно ли уменьшить lvm? если можно, реализовать на практике
+для изучения lvm, с ограниченными ресурсами, подсмотрел как это сделать при пощи создания
+файлов, имитирующими файловую систему
+anik@K53:~$ sudo mkdir /mnt/sdc1/
+anik@K53:~$ cd /mnt/sdc1/
+anik@K53:/mnt/sdc1$ sudo mkdir /lvm
+anik@K53:/mnt/sdc1$ cd lvm
+bash: cd: lvm: Нет такого файла или каталога
+anik@K53:/mnt/sdc1$ cd /lvm
+anik@K53:/lvm$ ls
+anik@K53:/lvm$ sudo dd if=/dev/zero of=./d01 count=1 bs=1G
+1+0 записей получено
+1+0 записей отправлено
+1073741824 байт (1,1 GB, 1,0 GiB) скопирован, 2,49412 s, 431 MB/s
+anik@K53:/lvm$ sudo dd if=/dev/zero of=./d02 count=1 bs=1G
+1+0 записей получено
+1+0 записей отправлено
+1073741824 байт (1,1 GB, 1,0 GiB) скопирован, 2,0748 s, 518 MB/s
+anik@K53:/lvm$ sudo dd if=/dev/zero of=./d03 count=1 bs=1G
+1+0 записей получено
+1+0 записей отправлено
+1073741824 байт (1,1 GB, 1,0 GiB) скопирован, 2,12853 s, 504 MB/s
+anik@K53:/lvm$ sudo dd if=/dev/zero of=./d04 count=1 bs=1G
+1+0 записей получено
+1+0 записей отправлено
+1073741824 байт (1,1 GB, 1,0 GiB) скопирован, 2,02945 s, 529 MB/s
+anik@K53:/lvm$ sudo losetup -f --show ./d01
+/dev/loop20
+anik@K53:/lvm$ sudo losetup -f --show ./d02
+/dev/loop21
+anik@K53:/lvm$ sudo losetup -f --show ./d03
+/dev/loop22
+anik@K53:/lvm$ sudo losetup -f --show ./d04
+/dev/loop23
+anik@K53:/lvm$ sudo pvcreate /dev/loop20
+  Physical volume "/dev/loop20" successfully created.
+anik@K53:/lvm$ sudo pvcreate /dev/loop21
+  Physical volume "/dev/loop21" successfully created.
+anik@K53:/lvm$ sudo pvcreate /dev/loop22
+  Physical volume "/dev/loop22" successfully created.
+anik@K53:/lvm$ sudo pvcreate /dev/loop23
+  Physical volume "/dev/loop23" successfully created.
+  anik@K53:/lvm$ sudo vgcreate -s 32M vg /dev/loop20 /dev/loop21 /dev/loop22 /dev/loop23
+  Volume group "vg" successfully created
+anik@K53:/lvm$ sudo lvcreate -n first -L 2G vg
+  Logical volume "first" created.
+anik@K53:/lvm$ sudo lvcreate -n second -L 1G vg
+  Logical volume "second" created.
+anik@K53:/lvm$ sudo lvcreate -n lol -L 500M vg
+  Rounding up size to full physical extent 512,00 MiB
+  Logical volume "lol" created.
+anik@K53:/lvm$ sudo mkfs.ext4 /dev/vg/first
+mke2fs 1.45.5 (07-Jan-2020)
+Discarding device blocks: done  
+anik@K53:/lvm$ sudo mkfs.ext4 /dev/vg/second
+mke2fs 1.45.5 (07-Jan-2020)
+anik@K53:/lvm$ sudo mkfs.ext4 /dev/vg/lol
+mke2fs 1.45.5 (07-Jan-2020)
+anik@K53:/lvm$ sudo lvdisplay
+  --- Logical volume ---
+  LV Path                /dev/vg/first
+  LV Name                first
+  VG Name                vg
+  LV UUID                EfBiqJ-OzRs-c03E-8XfK-dmaG-WGPZ-GYDAGr
+  LV Write Access        read/write
+  LV Creation host, time K53, 2020-11-14 10:24:37 +0300
+  LV Status              available
+  # open                 0
+  LV Size                2,00 GiB
+  Current LE             64
+  Segments               3
+  Allocation             inherit
+  Read ahead sectors     auto
+  - currently set to     256
+  Block device           253:0
+   
+  --- Logical volume ---
+  LV Path                /dev/vg/second
+  LV Name                second
+  VG Name                vg
+  LV UUID                eMnA2R-U7qr-RHKT-bcid-lPJv-bffV-eKjBq2
+  LV Write Access        read/write
+  LV Creation host, time K53, 2020-11-14 10:25:03 +0300
+  LV Status              available
+  # open                 0
+  LV Size                1,00 GiB
+  Current LE             32
+  Segments               2
+  Allocation             inherit
+  Read ahead sectors     auto
+  - currently set to     256
+  Block device           253:1
+   
+  --- Logical volume ---
+  LV Path                /dev/vg/lol
+  LV Name                lol
+  VG Name                vg
+  LV UUID                zG4tzz-KWaQ-Bl6B-oReb-4If0-4pwk-HpVfoC
+  LV Write Access        read/write
+  LV Creation host, time K53, 2020-11-14 10:25:31 +0300
+  LV Status              available
+  # open                 0
+  LV Size                512,00 MiB
+  Current LE             16
+  Segments               1
+  Allocation             inherit
+  Read ahead sectors     auto
+  - currently set to     256
+  Block device           253:2
+
+anik@K53:/lvm$ sudo resize2fs /dev/vg/first 1G
+resize2fs 1.45.5 (07-Jan-2020)
+Resizing the filesystem on /dev/vg/first to 262144 (4k) blocks.
+The filesystem on /dev/vg/first is now 262144 (4k) blocks long
+anik@K53:/lvm$ sudo lvreduce -L 1G /dev/vg/first
+  WARNING: Reducing active logical volume to 1,00 GiB.
+  THIS MAY DESTROY YOUR DATA (filesystem etc.)
+Do you really want to reduce vg/first? [y/n]: y
+  Size of logical volume vg/first changed from 2,00 GiB (64 extents) to 1,00 GiB (32 extents).
+  Logical volume vg/first successfully resized.
+anik@K53:/lvm$ sudo lvdisplay
+  --- Logical volume ---
+  LV Path                /dev/vg/first
+  LV Name                first
+  VG Name                vg
+  LV UUID                EfBiqJ-OzRs-c03E-8XfK-dmaG-WGPZ-GYDAGr
+  LV Write Access        read/write
+  LV Creation host, time K53, 2020-11-14 10:24:37 +0300
+  LV Status              available
+  # open                 0
+  LV Size                1,00 GiB
+  Current LE             32
+  Segments               2
+  Allocation             inherit
+  Read ahead sectors     auto
+  - currently set to     256
+  Block device           253:0
 
 
 
