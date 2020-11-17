@@ -2,4 +2,5 @@ text -test
  change-branch-history
 hot - bugfix
  и еще изменения 
- 
+ изменения с vetka1
+изменения с vetka2
