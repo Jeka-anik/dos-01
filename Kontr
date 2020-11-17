@@ -1,0 +1,282 @@
+ask1
+Изменить историю коммитов
+Вы работаете над фиксом, но поступает задание на фикс бага в приложении. Поскольку ваше задание еще не готово,
+вы решаете вернуться к началу и сделать баг фикс.
+
+Ваш репозиторий выглядит таким образом:
+
+            HEAD
+             |
+    change-branch-history
+             |
+    A <----- B
+     \
+      \----- C
+             |
+         hot-bugfix
+         
+Далее, вы осознаете, что баг важен и вы хотите продолжить работу с уже фиксом этого бага.
+И ваш репозиторий будет выглядить таким образом.        
+
+                     HEAD
+                      |
+             change-branch-history
+                      |
+    A <----- C <----- B
+             |
+         hot-bugfix
+
+создал ветку, сделал файл, сделал первый коммит 
+
+anik@K53:~/dos-01$ git branch kontr
+anik@K53:~/dos-01$ git checkout kontr
+Переключено на ветку «kontr»
+anik@K53:~/dos-01$ touch test.txt
+anik@K53:~/dos-01$ git add .
+anik@K53:~/dos-01$ git commit -m "ver1.0"
+[kontr 1c9e3c7] ver1.0
+ 1 file changed, 1 insertion(+)
+ create mode 100644 test.txt
+anik@K53:~/dos-01$ 
+
+изменил файл 
+закоммитил 
+anik@K53:~/dos-01$ git add .
+anik@K53:~/dos-01$ git commit -m "ver1.1"
+[kontr e21487a] ver1.1
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+ create mode 100644 Kontr
+
+ сделал еще один коммит 
+ anik@K53:~/dos-01$ vi test.txt
+anik@K53:~/dos-01$ git add .
+anik@K53:~/dos-01$ git commit -m "change-branch-history"
+[kontr 305360d] change-branch-history
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+anik@K53:~/dos-01$ git merge hot-bugfix
+Автослияние test.txt
+КОНФЛИКТ (содержимое): Конфликт слияния в test.txt
+Не удалось провести автоматическое слияние; исправьте конфликты и сделайте коммит результата.
+
+text -test
+ change-branch-history
+<<<<<<< HEAD
+=======
+hot - bugfix
+>>>>>>> hot-bugfix
+ 
+результат
+text -test
+ change-branch-history
+hot - bugfix
+ 
+ Task2
+Вы должны были закончить вашу работу неделю назад. 
+Но, так как были более важные таски, вы закоммитили фичу только сейчас.
+
+Так, как вы эксперт в гите - измените дату последнего коммита.
+ Сделайте, чтобы он был закоммичен 10 лет назад в 2010.
+
+результат до
+
+anik@K53:~/dos-01$ git log --pretty=fuller
+commit 4eb3462447bffdfd8134a20865335ae0ee13458b (HEAD -> kontr)
+Merge: 305360d 4ee7d7e
+Author:     Evgeniy <anik.evgeniy@gmail.com>
+AuthorDate: Tue Nov 17 20:17:45 2020 +0300
+Commit:     Evgeniy <anik.evgeniy@gmail.com>
+CommitDate: Tue Nov 17 20:17:45 2020 +0300
+
+anik@K53:~/dos-01$ git commit --amend --no-edit --date="2010.11.17 20:17"
+[kontr ce0f1b9] final
+ Date: Wed Nov 17 20:17:00 2010 +0200
+
+ anik@K53:~/dos-01$ git log --pretty=fuller
+commit ce0f1b9a09c3bac77db4140ce08ca0c03401bb80 (HEAD -> kontr)
+Merge: 305360d 4ee7d7e
+Author:     Evgeniy <anik.evgeniy@gmail.com>
+AuthorDate: Wed Nov 17 20:17:00 2010 +0200
+Commit:     Evgeniy <anik.evgeniy@gmail.com>
+CommitDate: Tue Nov 17 20:22:16 2020 +0300
+
+Task3
+Пока вы работали над проектом вы увидели, что написали 
+вместо Hello - ello в коммите и в файле.
+
+Но вы заметили поздно и сделали еще один коммит.
+
+git commit --amend уже не помогает
+
+Исправьте ошибку в истории коммитов. И ошибку в файле.
+посмотрим историю
+anik@K53:~/dos-01$ git log --pretty=format:"%h - %ar : %s"
+ce0f1b9 - 10 лет назад : final
+305360d - 16 минут назад : change-branch-history
+4ee7d7e - 18 минут назад : hot-bugfix
+e21487a - 22 минуты назад : ver1.1
+1c9e3c7 - 25 минут назад : ver1.0
+1fb686e - 9 часов назад : first
+
+выберу коммит e21487a - 22 минуты назад : ver1.1
+git rebase --interactive 1fb686e^
+
+Task4
+Вы работали над фичей и создали два коммита с маленькми изменениями.
+ Вы не хотите засорять историю и хотите сделать только один коммит, 
+ который включает два данных изменения.
+Сэмулируйте ситуацию.
+сделал пару коммитов с файлом 
+anik@K53:~/dos-01$ git add .
+anik@K53:~/dos-01$ git commit -m "1com"
+[kontr 2707cac] 1com
+ 1 file changed, 3 deletions(-)
+anik@K53:~/dos-01$ git add .
+anik@K53:~/dos-01$ git commit -m "2com" 
+[kontr 88fdf10] 2com
+ 1 file changed, 1 insertion(+)
+anik@K53:~/dos-01$ 
+
+anik@K53:~/dos-01$ git reset --soft HEAD~2
+anik@K53:~/dos-01$ git commit --amend
+подсказка: Ожидание, пока вы закроете редактор с файлом… 
+
+Используйте «fg» для возврата в nano
+
+[14]+  Остановлен    git commit --amend
+anik@K53:~/dos-01$ git commit --amend
+[kontr 21e8d67] com1-2
+ Date: Wed Nov 17 20:17:00 2010 +0200
+anik@K53:~/dos-01$ git log
+commit 21e8d67359c19aa8de5ad786ef70c1b7582fb0c9 (HEAD -> kontr)
+Merge: 305360d 4ee7d7e
+Author: Evgeniy <anik.evgeniy@gmail.com>
+Date:   Wed Nov 17 20:17:00 2010 +0200
+
+    com1-2
+
+Task5*
+Вы работаете над фичей, но приходит задача на исправление бага. 
+Но ваша работа может потеряться, а коммитить вы не хотите - в тоже 
+время вам надо уже начинать работу над багом.
+Git позволяет сохранить работу на вашей стороне и вернуться позже.
+Сэмулируйте данную ситуацию. Переключитесь на баг, сделайте коммит
+ - а затем вернитесь к вашей работе.
+
+допустим мы сейчас на ветке kontr
+anik@K53:~/dos-01$ vi test.txt
+anik@K53:~/dos-01$ git status
+На ветке kontr
+Изменения, которые не в индексе для коммита:
+  (используйте «git add <файл>…», чтобы добавить файл в индекс)
+  (use "git restore <file>..." to discard changes in working directory)
+        изменено:      test.txt
+
+нет изменений добавленных для коммита
+(используйте «git add» и/или «git commit -a»)
+anik@K53:~/dos-01$ 
+ есть файл в индексе, но не закоммиченный
+ anik@K53:~/dos-01$ git stash
+Рабочий каталог и состояние индекса сохранены WIP on kontr: 21e8d67 com1-2
+
+anik@K53:~/dos-01$ git checkout main
+Переключено на ветку «main»
+Ваша ветка опережает «origin/main» на 1 коммит.
+  (используйте «git push», чтобы опубликовать ваши локальные коммиты)
+anik@K53:~/dos-01$ git checkout kontr
+Переключено на ветку «kontr»
+anik@K53:~/dos-01$ 
+
+переключился на main, сделал коммит, переключился обратно 
+посмотрел что в сохранных 
+anik@K53:~/dos-01$ git add .
+anik@K53:~/dos-01$ git commit -m "ok"
+[main 3200703] ok
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+anik@K53:~/dos-01$ git checkout kontr
+Переключено на ветку «kontr»
+anik@K53:~/dos-01$ git stash show
+ test.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+anik@K53:~/dos-01$ 
+
+Task6*
+Вы создали script.sh. Но не сделали его executable,
+ теперь не можете запустить ./script.sh при сборке приложения.
+
+Исправьте это добавляя бит для script.sh в гит истории.
+anik@K53:~/dos-01$ vi script.sh
+anik@K53:~/dos-01$ git add script.sh  
+anik@K53:~/dos-01$ git commit -am "ver1"
+[kontr 72f0976] ver1
+ 1 file changed, 2 insertions(+)
+ create mode 100644 script.sh
+ anik@K53:~/dos-01$ git add --chmod=+x -- script.sh
+ anik@K53:~/dos-01$ git status
+На ветке kontr
+Изменения, которые будут включены в коммит:
+  (use "git restore --staged <file>..." to unstage)
+        изменено:      script.sh
+
+Изменения, которые не в индексе для коммита:
+  (используйте «git add <файл>…», чтобы добавить файл в индекс)
+  (use "git restore <file>..." to discard changes in working directory)
+        изменено:      script.sh
+
+anik@K53:~/dos-01$ git commit -m "ver2"
+[kontr 83b3c94] ver2
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ mode change 100644 => 100755 script.sh
+
+ 
+
+Task7*
+Вы сделали три фичи в трех разных ветках.
+Вы хотите объединить все эти фичи в одну ветку.
+
+anik@K53:~/dos-01$ git branch vetka1
+anik@K53:~/dos-01$ git branch vetka2
+anik@K53:~/dos-01$ git status
+На ветке kontr
+нечего коммитить, нет изменений в рабочем каталоге
+anik@K53:~/dos-01$ git branch --list
+  DZ
+  hot-bugfix
+* kontr
+  main
+  vetka
+  vetka1
+  vetka2
+anik@K53:~/dos-01$ git checkout vetka1
+Переключено на ветку «vetka1»
+anik@K53:~/dos-01$ ls
+ dos   HW15  'Ivanovich lecture15'   Kontr   lecture15   README.md   script.sh   test.txt   шпаргалка
+anik@K53:~/dos-01$ vi test.txt
+
+[17]+  Остановлен    vi test.txt
+anik@K53:~/dos-01$ vi test.txt
+anik@K53:~/dos-01$ git checkout vetka2
+M       test.txt
+Переключено на ветку «vetka2»
+anik@K53:~/dos-01$ vi test.txt
+anik@K53:~/dos-01$ git checkout kontr
+M       test.txt
+Переключено на ветку «kontr»
+anik@K53:~/dos-01$ git merge vetka1
+Уже обновлено.
+anik@K53:~/dos-01$ git merge vetka2
+Уже обновлено.
+anik@K53:~/dos-01$ git add .
+anik@K53:~/dos-01$ git commit -m "final"
+[kontr 8d46f03] final
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+ create mode 100644 .test.txt.swp
+anik@K53:~/dos-01$ 
+
+итоговый текст 
+"text -test
+ change-branch-history
+hot - bugfix
+ и еще изменения 
+ изменения с vetka1
+изменения с vetka2
+"  
