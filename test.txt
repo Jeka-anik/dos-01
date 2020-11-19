@@ -7,3 +7,4 @@ hot - bugfix
 файл
 read
 amen
+pof
