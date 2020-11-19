@@ -109,16 +109,35 @@ git commit --amend уже не помогает
 
 Исправьте ошибку в истории коммитов. И ошибку в файле.
 посмотрим историю
+создал файл, сделал много коммитов 
 anik@K53:~/dos-01$ git log --pretty=format:"%h - %ar : %s"
-ce0f1b9 - 10 лет назад : final
-305360d - 16 минут назад : change-branch-history
-4ee7d7e - 18 минут назад : hot-bugfix
-e21487a - 22 минуты назад : ver1.1
-1c9e3c7 - 25 минут назад : ver1.0
-1fb686e - 9 часов назад : first
+619c50b - 3 секунды назад : ver1.5
+8dcb50f - 18 секунд назад : ver1.4
+05979c4 - 4 минуты назад : ver1.3
+07740d9 - 4 минуты назад : ver1.2
+anik@K53:~/dos-01$ git rebase -i 05979c4^
+Остановлено на 05979c4 …  ver1.3
+You can amend the commit now, with
 
-выберу коммит e21487a - 22 минуты назад : ver1.1
-git rebase --interactive 1fb686e^
+  git commit --amend 
+
+Once you are satisfied with your changes, run
+
+  git rebase --continue
+
+изменил pick на edit 
+anik@K53:~/dos-01$ git commit --amend
+[отделённый HEAD fa33797] ver1.3redact
+ Date: Thu Nov 19 19:36:19 2020 +0300
+ 1 file changed, 1 insertion(+)
+ anik@K53:~/dos-01$ git rebase --continue
+Successfully rebased and updated refs/heads/kontr.
+anik@K53:~/dos-01$ git log --pretty=format:"%h - %ar : %s"
+70830b9 - 8 минут назад : ver1.5
+d491976 - 8 минут назад : ver1.4
+fa33797 - 11 минут назад : ver1.3redact
+07740d9 - 12 минут назад : ver1.2
+
 
 Task4
 Вы работали над фичей и создали два коммита с маленькми изменениями.
