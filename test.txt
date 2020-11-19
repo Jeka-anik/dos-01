@@ -5,3 +5,4 @@ hot - bugfix
  изменения с vetka1
 изменения с vetka2
 файл
+read
