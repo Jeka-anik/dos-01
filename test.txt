@@ -6,3 +6,4 @@ hot - bugfix
 изменения с vetka2
 файл
 read
+amen
