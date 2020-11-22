@@ -1,0 +1,157 @@
+Написать bash скрипт, который будет выводить следующую информацию:
+1) Тип ОС
+
+anik@K53:~/dos-01$ sudo git branch hw18
+anik@K53:~/dos-01$ git checkout hw18
+Переключено на ветку «hw18»
+anik@K53:~/dos-01$ nano ostype.sh
+anik@K53:~/dos-01$ chmod +x ostype.sh
+anik@K53:~/dos-01$ ./ostype.sh
+
+  GNU nano 4.8                 ostype.sh                          
+#!/bin/bash
+echo "тип ОС:  $OSTYPE" 
+anik@K53:~/dos-01$ ./ostype.sh
+тип ОС:  linux-gnu
+
+2) Имя ос
+anik@K53:~/dos-01$ nano hostname.sh
+anik@K53:~/dos-01$ chmod +x hostname.sh
+  GNU nano 4.8                hostname.sh                         
+#!/bin/bash
+echo "имя ОС: $HOSTNAME "
+anik@K53:~/dos-01$ ./hostname.sh
+имя ОС: K53 
+
+3) Версия ядра
+anik@K53:~/dos-01$ nano kernel.sh
+anik@K53:~/dos-01$ chmod +x kernel.sh
+#!/bin/bash
+uname -a | awk ' {print $3} '
+anik@K53:~/dos-01$ ./kernel.sh
+5.4.0-54-generic
+
+4) Ip адрес
+anik@K53:~/dos-01$ nano ip.sh
+#!/bin/bash
+ip r l | grep wlp3s0
+anik@K53:~/dos-01$ chmod +x ip.sh
+anik@K53:~/dos-01$ ./ip.sh
+default via 192.168.100.1 dev wlp3s0 proto dhcp metric 600 
+192.168.100.0/24 dev wlp3s0 proto kernel scope link src 192.168.100.24 metric 600
+
+5) LA за последние 15 минут
+anik@K53:~/dos-01$ nano LA.sh
+anik@K53:~/dos-01$ chmod +x LA.sh
+#!/bin/bash 
+echo "Load Average for 15min"
+cat /proc/loadavg | awk ' {print $3} '
+anik@K53:~/dos-01$ ./LA.sh
+Load Average for 15min
+0.55
+
+6) Время работы системы
+anik@K53:~/dos-01$ nano uptime.sh
+anik@K53:~/dos-01$ chmod +x uptime.sh
+  GNU nano 4.8                 uptime.sh                           
+#!/bin/bash
+echo "время работы системы: "
+uptime | awk ' {print $2, $3, $4, $5} '
+
+anik@K53:~/dos-01$ ./uptime.sh
+время работы системы: 
+up 1 day, 11:31,
+
+7) Информацию об использованной RAM
+anik@K53:~/dos-01$ nano ram.sh
+anik@K53:~/dos-01$ chmod +x ram.sh
+  GNU nano 4.8                   ram.sh                            
+#!/bin/bash
+echo "использовано памяти: "
+cat /proc/meminfo | grep Mem
+anik@K53:~/dos-01$ ./ram.sh
+использовано памяти: 
+MemTotal:        5987540 kB
+MemFree:          567176 kB
+MemAvailable:    1412464 kB
+anik@K53:~/dos-01$ 
+
+8) Информацию об авторизованных пользователях
+
+anik@K53:~/dos-01$ nano user.sh
+anik@K53:~/dos-01$ chmod +x user.sh
+#!/bin/bash
+echo "Информация об авторизованных пользователях:"
+w -s
+anik@K53:~/dos-01$ ./user.sh
+Информация об авторизованных пользователях:
+ 22:08:43 up 1 day, 12:07,  2 users,  load average: 0,85, 0,65, 0,40
+USER     TTY      FROM              IDLE WHAT
+anik     tty4     -                 1:52m -bash
+anik     :0       :0               ?xdm?  /usr/lib/gdm3/gdm-x
+
+
+Final
+
+rab2@rab2-vm:/etc/profile.d$ sudo nano big.sh
+[sudo] пароль для rab2: 
+rab2@rab2-vm:/etc/profile.d$ sudo chmod +x big.sh
+rab2@rab2-vm:/etc/profile.d$ ./big.sh
+
+#!/bin/bash
+echo "тип ОС:  $OSTYPE"
+echo "имя ОС: $HOSTNAME "
+uname -a | awk ' {print $3} '
+ip r l | grep wlp3s0
+echo "Load Average for 15min"
+cat /proc/loadavg | awk ' {print $3} '
+echo "время работы системы: "
+uptime | awk ' {print $2, $3, $4, $5} '
+echo "использовано памяти: "
+cat /proc/meminfo | grep Mem
+echo "Информация об авторизованных пользователях:"
+w -s
+
+подключаемся с хостовой машинки на виртуальную
+anik@K53:~$ ssh rab2@192.168.122.94 
+rab2@192.168.122.94's password: 
+Welcome to Ubuntu 20.04.1 LTS (GNU/Linux 5.4.0-48-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+258 обновлений могут быть установлены прямо сейчас.
+113 из этих обновлений, являются обновлениями безопасности.
+Чтобы просмотреть дополнительные обновления выполните: apt list --upgradable
+
+Your Hardware Enablement Stack (HWE) is supported until April 2025.
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+тип ОС:  linux-gnu
+имя ОС: rab2-vm 
+5.4.0-48-generic
+Load Average for 15min
+0.12
+время работы системы: 
+up 1:13, 2 users,
+использовано памяти: 
+MemTotal:        2035192 kB
+MemFree:          160536 kB
+MemAvailable:     453172 kB
+Информация об авторизованных пользователях:
+ 23:23:25 up  1:13,  2 users,  load average: 0,38, 0,22, 0,12
+USER     TTY      FROM              IDLE WHAT
+rab2     :0       :0               ?xdm?  /usr/lib/gdm3/gdm-x-session --run-s
+rab2     pts/1    192.168.122.1     0.00s w -s
+
+
+как видим, все скрипты отрабатывают при входе 
+машинку
+
