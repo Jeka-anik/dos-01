@@ -16,6 +16,7 @@ parametr 3 = 456
 parametr 4 = 654
 
 
+
  2) Создать скрипт, который присваивает переменной File значение TheFile 
  - если TheFile задан. Иначе назачает переменной File /tmp/data.file.
    Проверка в одну строку. Использовать специальные Unset/Null операции.
@@ -131,7 +132,9 @@ ave   5    15  26
 #Создал  файл count с набором столбцов как в исходном задании
 
 #!/bin/bash
-awk 'BEGIN{sum=0} {sum+=$1; sum2+=$2; sum3+=$3 } END{print "Сумма по столбцам:" sum, sum2, sum3}' count
+
+awk 'BEGIN{sum=0} {sum+=$1; sum2+=$2; sum3+=$3; sum4=sum/2; sum5=sum2/2; sum6=sum3/2 } END{print "Сумма по столбцам:" sum, sum2, sum3 ," среднее :" sum4, sum5, sum6 }' count
+
 
 #Вывод скрипта
 anik@K53:~/dos-01$ ./part4.sh
